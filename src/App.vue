@@ -2,7 +2,7 @@
 <template>  
     <h1>Sudoku</h1>
     <hr>
-    <div id="errors">0</div>
+    <div id="errors">{{ errors }}</div>
     
       <div id="board">
         <div v-for="r in 9">
@@ -11,6 +11,7 @@
            :get-number="digit" 
            :comp-pos="[c-1,r-1]"
            :class="allComps[c-1][r-1].class"
+           :luck-number="allComps[c-1][r-1].luck"
            :all-list="allList"
            :check-list="{
             row: checkRow,
@@ -18,7 +19,8 @@
             square: checkSquare
           }"
           @active="changeBorder"
-          @dis="removeBorder"></comp>
+          @dis="removeBorder"
+          @error="errorHandler"></comp>
         </div>
           
     </div>
@@ -36,8 +38,10 @@
 import {ref} from 'vue'
 ///////////data///////////////
 const digit = ref()
+const errors = ref(0)
 const allComps = ref([...Array(9)].map(e=>Array(9)))
 const allList = ref([...Array(9)].map(e=>Array(9)))
+const answer = ref([...Array(9)].map(e=>Array(9)))
 //////////methods/////////////
 const getNumber =(val)=>{
   digit.value = val
@@ -112,7 +116,6 @@ const generator = () => {
 
    for(let r=0;r<8;r++){
      const arr = ref(newPuzzle.value[r].filter((e)=> e))
-      console.log("🚀 log generator log arr:", arr.value)
       let shift = 2
       if((r+1)%3) shift = 3
 
@@ -126,9 +129,13 @@ const generator = () => {
 
 const freeRooms =()=>{
   for (let i = 0; i < 64; i++) {
-    allList.value[Math.floor(Math.random()*9)][Math.floor(Math.random()*9)] = null
-    
+    allList.value[Math.floor(Math.random()*9)][Math.floor(Math.random()*9)] = null 
   }
+  allComps.value.forEach((e,r) => {
+    e.forEach((v,c) =>{
+      if(allList.value[r][c] != null)  v.luck = true
+    });
+  });
 }
 const componentCreator = () => {
   for (let r = 0; r < 9; r++) {
@@ -136,7 +143,8 @@ const componentCreator = () => {
       allComps.value[c][r]={
         id: r+'-'+c,
         pos: [c,r],
-        class: ' '
+        class: ' ',
+        lock: false
       }
       
     }
@@ -146,26 +154,46 @@ const componentCreator = () => {
 
 const changeBorder = (value) =>{
 
-  allComps.value.forEach((e,i) => {
-    e.forEach((v,j) =>{
-      if(v.pos[0] == value[0])  v.class = 'new'
-      if(v.pos[1] == value[1])  v.class = 'new'
+  allComps.value.forEach((e) => {
+    e.forEach((v) =>{
+      if(v.pos[0] == value[0] || v.pos[1] == value[1])  v.class = 'new'
     });
   });
 }
 const removeBorder = (value) =>{
 
-  allComps.value.forEach((e,i) => {
-    e.forEach((v,j) =>{
-      if(v.pos[0] == value[0])  v.class = ''
-      if(v.pos[1] == value[1])  v.class = ''
+  allComps.value.forEach((e) => {
+    e.forEach((v) =>{
+      if(v.pos[0] == value[0] || v.pos[1] == value[1])  v.class = ''
     });
   });
 }
 
-componentCreator()
+const errorHandler = () =>{
+  errors.value++
+  if(errors.value>5) {
+    alert('YOU LOST!!!')
+    allList.value = answer.value
+  }
+}
+
+const Start = () => {
+  componentCreator()
 allList.value = generator()
+
+allList.value.forEach((e,r)=>{
+  e.forEach((v,c) =>{
+     answer.value[r][c] = v
+  });
+});
+
 freeRooms()
+}
+/////////////////////////////////////////////////////////
+
+Start()
+
+
 </script>
 
 <style>

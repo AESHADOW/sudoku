@@ -21,7 +21,7 @@ const clsObj = computed(()=>({
 
 
 ///////////////emit&prop//////////////
-const emit = defineEmits(['active','dis'])
+const emit = defineEmits(['active','dis','error'])
 
 const props = defineProps({
     getNumber:{
@@ -33,14 +33,16 @@ const props = defineProps({
     allList:{
         type: Array
     },
-    checkList: Object
+    checkList: Object,
+    luckNumber: Boolean
 })
 //////////////methods////////////////
 
 
 
 const setNumber = () => {
-        if(clicked.value){
+       if(!props.luckNumber){
+         if(clicked.value){
         getN.value = null
     }else{
         getN.value = props.getNumber
@@ -51,8 +53,10 @@ const setNumber = () => {
     props.checkList.square(props.allList,getN.value,props.compPos) ?
        invalid.value = true : invalid.value = false
 
+       invalid.value ? emit('error') : ''
     props.allList[props.compPos[0]][props.compPos[1]] = getN.value
     clicked.value = !clicked.value
+}
 }
 
 const activeBorder = () => {
